@@ -19,16 +19,6 @@ conferencetitlesdict = json.load(open('conferencenames.json','r'))
 
 topicdict = json.load(open('topic_mapping.json','r'))
 
-def main():
-	# print("Inside Main")
-	# sys.stdout.flush()
-	while True:
-		for line in sys.stdin:
-			inputstr = line
-			# print(line)
-			# sys.stdout.flush()
-			entity_recog(inputstr)
-
 def entity_recog(querystr):
 	# querystr = sys.argv[1]
 	querystr = re.sub('[^A-Za-z0-9]',' ',querystr)
@@ -50,7 +40,7 @@ def entity_recog(querystr):
 	for token in tokens:
 		try:
 			a = int(token)
-			if a >= 1900 and a < curr:
+			if a >= 1950 and a < curr:
 				yeartokens.append(a)
 		except:
 			if (token.lower() not in stopwords) or (token not in stopwords and token.lower() in stopwords):
@@ -61,21 +51,51 @@ def entity_recog(querystr):
 		for authid in authidnamesdict:
 			if token in authidnamesdict[authid]:
 				authidspertoken[token].append(authid)
-			# else:
-			# 	for name in authidnamesdict[authid]:
-			# 		if name.startswith(token,0):
-			# 			authidspertoken[token].append(authid)
-			# 			break
+			else:
+				for name in authidnamesdict[authid]:
+					if name.startswith(token,0):
+						authidspertoken[token].append(authid)
+						break
 
 		for conferenceid in conferencetitlesdict:
 			if token.upper() in conferencetitlesdict[conferenceid]:
 				conferenceidspertoken[token].append(conferenceid)
 				marker = 1
+			elif len(token) > 1:
+				marker=1
+				counterforconf=0
+				for char in token:
+					temp=0
+					counterforconf+=1
+					for t in conferencetitlesdict[conferenceid]:
+						if char.upper()==t[counterforconf-1]:
+							temp = 1
+							break
+					if temp==0:
+						marker=0
+						break
+				if marker==1:
+					conferenceidspertoken[token].append(conferenceid)
 
 		for topicid in topicdict:
 			if token in topicdict[topicid]:
 				topicidspertoken[token].append(topicid)
 				marker = 1
+			else:
+				marker=1
+				for char in token:
+					temp=0
+					for t in topicdict[topicid]:
+						if t.startswith(char,0)==True:
+							temp = 1
+							break
+					if temp==0:
+						marker=0
+						break
+				if marker==1:
+					topicidspertoken[token].append(topicid)
+				
+
 
 	i=0
 	longestlengthmatchfromtoken = defaultdict(list)
@@ -263,30 +283,64 @@ def entity_recog(querystr):
 def relationship(queries):
 
 	top_synonyms=['highest', 'top', 'topmost', 'most', 'utmost', 'supreme', 'best', 'top-grade', 'premier', 'peerless', 'unrivalled', 'unsurpassed', 'finest', 'elite']
-	most_synonyms=['most','maximum','largest','greatest','highest']
 	field_synonyms=['field','topic','domain','area','sphere','branch','sector','discipline']
-	conf_synonyms=['conference','workshop','symposium','summit','meeting','conclave','seminar','forum','convocation','school']
-	publish_synonyms=['publish','publication','acceptance','accept']
-	list_synonyms=['list','enlist','enumerate','tabulate','rank','what are']
-	be_verb_synonyms=['is','was','are','were','do','does','did','has','have','had','will']
+	conf_synonyms=['conference','workshop','symposium','summit','meeting','conclave','seminar','forum','convocation','school','venue']
+	publish_synonyms=['publish','publication','acceptance','accept','conduct']
+	list_synonyms=['list','enlist','enumerate','tabulate','rank','show','get','give']  #,'what'
 	future_verb_synonyms=['shall','would','can','could','should']
 	author_synonyms=['author','researcher','scientist','person','engineer','linguist']
-	paper_synonyms=['paper','work']
+	paper_synonyms=['paper','work','journal', 'article', 'demo']
+	################################# EXTENDED PART UNDER TESTING ################
+	most_synonyms=['most','maximum','largest','greatest','highest','best']
+	more_synonyms=['more','greater','higher']
+	less_synonyms=['less','lower','lesser']
+	citation_synonyms=['citation','cite','reference','citations']
+	first_synonyms=['first','start','started']
+	last_synonyms=['last','end','latest']
+	positive_synonyms=['positive','good','supporting','appreciating']
+	negative_synonyms=['negative','bad','opposing','criticizing']
+	until_synonyms=['until','till','upto','to']
+	from_synonyms=['since','from']
+	between_synonyms=['between','inbetween']
 	number_synonyms=['number','no','distribution','trend']
+	binary_synonyms=['is','was','are','were','do','does','did','has','have','had','will']
+
+	most_synonyms.extend([ps.stem(i.strip()) for i in most_synonyms])
+	more_synonyms.extend([ps.stem(i.strip()) for i in more_synonyms])
+	less_synonyms.extend([ps.stem(i.strip()) for i in less_synonyms])
+	citation_synonyms.extend([ps.stem(i.strip()) for i in citation_synonyms])
+	first_synonyms.extend([ps.stem(i.strip()) for i in first_synonyms])
+	last_synonyms.extend([ps.stem(i.strip()) for i in last_synonyms])
+	positive_synonyms.extend([ps.stem(i.strip()) for i in positive_synonyms])
+	negative_synonyms.extend([ps.stem(i.strip()) for i in negative_synonyms])
+	until_synonyms.extend([ps.stem(i.strip()) for i in until_synonyms])
+	from_synonyms.extend([ps.stem(i.strip()) for i in from_synonyms])
+	between_synonyms.extend([ps.stem(i.strip()) for i in between_synonyms])
+	binary_synonyms.extend([ps.stem(i.strip()) for i in binary_synonyms])
+
+	most_flag=0
+	more_flag=0
+	less_flag=0
+	cite_flag=0
+	first_flag=0
+	last_flag=0
+	positive_flag=0
+	negative_flag=0
+	until_flag=0
+	from_flag=0
+	between_flag=0
+	##############################################################################
 
 
 	top_synonyms.extend([ps.stem(i.strip()) for i in top_synonyms])
 	field_synonyms.extend([ps.stem(i.strip()) for i in field_synonyms])
 	conf_synonyms.extend([ps.stem(i.strip()) for i in conf_synonyms])
 	publish_synonyms.extend([ps.stem(i.strip()) for i in publish_synonyms])
-	most_synonyms.extend([ps.stem(i.strip()) for i in most_synonyms])
 	list_synonyms.extend([ps.stem(i.strip()) for i in list_synonyms])
 	author_synonyms.extend([ps.stem(i.strip()) for i in author_synonyms])
 	paper_synonyms.extend([ps.stem(i.strip()) for i in paper_synonyms])
 	number_synonyms.extend([ps.stem(i.strip()) for i in number_synonyms])
 
-	# queries=sys.argv[0]
-	# Convert string to list
 	queries = [queries]
 
 	errCnt =0
@@ -301,13 +355,10 @@ def relationship(queries):
 	univ_regex="([$][u][:][0-9,]+[$])"
 	venue_regex="([$][v][:][0-9,]+[$])"
 	year_regex="([$][y][:][0-9,]+[$])"
-
+	number_regex="([$][n][:][0-9,]+[$])"
 
 
 	for query in queries:
-		# line=line.strip().split('\t')
-		# act_queryId = int(line[0])
-		# query = line[1]
 		query=re.sub('[^A-Za-z0-9$,:]',' ',query)
 		query=query.strip().lower()
 		words=query.split()
@@ -320,6 +371,7 @@ def relationship(queries):
 		reg_venue=re.findall(venue_regex,query)
 		reg_univ=re.findall(univ_regex,query)
 		reg_year=re.findall(year_regex,query)
+		reg_number=re.findall(number_regex,query)
 
 
 
@@ -329,6 +381,7 @@ def relationship(queries):
 		type_dict['$f']=[]
 		type_dict['$u']=[]
 		type_dict['$y']=[]
+		type_dict['$n']=[]
 
 		for elem in reg_auth:
 			elem=elem.split(':')
@@ -355,6 +408,11 @@ def relationship(queries):
 			if elem[0] =='$y':
 				type_dict['$y'].extend(elem[1].split(',')[:-1])
 
+		for elem in reg_number:
+			elem=elem.split(':')
+			if elem[0] =='$n':
+				type_dict['$n'].extend(elem[1].split(',')[:-1])
+
 
 		### Check if it is statistical, binary or list:
 
@@ -362,7 +420,8 @@ def relationship(queries):
 		conf_flag=0
 		pub_flag=0
 		top_index=-1
-		most_flag=0
+		top_flag=0
+		# most_flag=0
 		list_flag=0
 		author_flag=0
 		binary_flag=0
@@ -395,147 +454,1052 @@ def relationship(queries):
 			if -1 == top_index:
 				if word in top_synonyms:
 					top_index = i
+					top_flag=1
 			if -1 == number_index:
 				if word in number_synonyms:
 					number_index = i
+			if ~most_flag:
+				if word in most_synonyms:
+					most_flag=1
+			if ~more_flag:
+				if word in more_synonyms:
+					more_flag=1
+			if ~less_flag:
+				if word in less_synonyms:
+					less_flag=1
+			if ~cite_flag:
+				if word in citation_synonyms:
+					cite_flag=1
+			if ~first_flag:
+				if word in first_synonyms:
+					first_flag=1
+			if ~last_flag:
+				if word in last_synonyms:
+					last_flag=1
+			if ~positive_flag:
+				if word in positive_synonyms:
+					positive_flag=1
+			if ~negative_flag:
+				if word in negative_synonyms:
+					negative_flag=1
+			if ~until_flag:
+				if word in until_synonyms:
+					until_flag=1
+			if ~from_flag:
+				if word in from_synonyms:
+					from_flag=1
+			if ~between_flag:
+				if word in between_synonyms:
+					between_flag=1
+			if 0 == i:
+				if ~binary_flag:
+					if word in binary_synonyms:
+						binary_flag=1
+					
+		if ps.stem('impact') in stem_words:
+			if most_flag==1:
+				queryId=5025
+			elif more_flag==1:
+				queryId=6025
+			elif less_flag==1:
+				queryId=7025
+			if queryId>0 and len(reg_year)==1:
+				if until_flag==1:
+					queryId += 600
+				elif from_flag==1:
+					queryId += 800
+				else:
+					queryId += 200
+			elif queryId>0 and len(reg_year)==2:
+				queryId += 400
+				
+		elif most_flag==1 or top_flag==1:
+			if len(reg_number)==0:
+				if paper_flag==1 or pub_flag==1:
+					paper_flag=1
+				if author_flag ==0 and conf_flag==0 and paper_flag==0:
+					if cite_flag==1:
+						if len(reg_venue) > 0:
+							if len(reg_field) > 0:
+								queryId =5007
+							else:
+								queryId =5003
+						else:
+							if len(reg_field) > 0:
+								queryId =5005
+							else:
+								
+								queryId =5001
 
-		whoFlag = 0
-		if 'who' in stem_words:
-			whoFlag = 1
-
-		if 'which' in stem_words or whoFlag:
-			if conf_flag:
-				if pub_flag or paper_flag:
-					if most_flag==1:
-						queryId = 7
-			elif paper_flag:
-				if len(reg_field)>0:
-					if 'citat' in stem_words:
-						if most_flag==1:
-							queryId = 9
-			elif author_flag or whoFlag:
-				if len(reg_field)>0:
-					if 'citat' in stem_words:
-						if most_flag==1:
-							queryId = 13
-
-		elif 'when' in stem_words:
-			if pub_flag or paper_flag:
-				if 'start' in stem_words:
-					if len(reg_auth)>0:
-						if len(reg_field)>0:
-							queryId = 10
-
-		# elif 'compar' in stem_words:
-		# 	if len(reg_field)>0:
-		# 		if len(reg_venue) == 2:
-		# 			queryId = 3
-		elif 'compar' in stem_words:
-			if len(reg_field)>0:
-				if len(reg_venue) == 2:
-					queryId = 300
-				elif len(reg_auth)==2:
-					queryId=301
-			elif ps.stem('impact') in stem_words and ps.stem('factor') in stem_words:
-				if len(reg_venue)==2:
-					queryId=302
-		# else:
-		# 	queryId=0
-				# print 'whoFlag'
-		if queryId==0:
-			if words[0] in be_verb_synonyms:
-				binary_flag=1
-				increment=100
-
-			elif 'how' in words and 'many' in words:
-				how_ind=words.index('how')
-				many_ind=words.index('many')
-				if how_ind+1==many_ind:
-					how_many_branch=1
-					increment=0
-
-			elif number_index>=0 and 'of' in words:
-				# of_ind = words.index('of')
-				if 'of'== words[number_index+1]:
-					how_many_branch = 1
-					increment=0
-
-			elif list_flag==1:
-				increment=200
-			else:
-				increment=-1
-
-		if increment>=0:
-			if len(reg_univ)>0:
-				if len(reg_field)>0:
-					queryId=22
-				elif ps.stem('cite') in stem_words or ps.stem('citation') in stem_words:
-					queryId=24
-				elif field_flag==1:
-					queryId=23
-				elif pub_flag ==1 or paper_flag==1:
-					queryId=25
-				# else:
-				# 	queryId=0
-
-			elif len(reg_venue)>0 or conf_flag==1:
-				if len(reg_venue)>0:
-					if len(reg_field)>0:
-						queryId=1
-					elif field_flag==1:
-						queryId=21
-					elif top_index != -1 and paper_flag==1 :
-						limit = int(stem_words[stem_words.index('top')+1])
-						queryId = 14
-						increment=200
+				elif author_flag ==0 and conf_flag==0 and paper_flag==1:
+					if cite_flag==1:
+						if len(reg_auth) > 0:
+							if len(reg_venue) > 0:
+								if len(reg_field) > 0:
+									queryId =5019
+								else:
+									queryId =5018
+							else:
+								if len(reg_field) > 0:
+									queryId =5017
+								else:
+									queryId =5016
+						else:
+							if len(reg_venue) > 0:
+								if len(reg_field) > 0:
+									queryId =5020
+								else:
+									queryId =5015
+							else:
+								if len(reg_field) > 0:
+									queryId =5014
+								else:
+									queryId =5013
 					else:
-						queryId=8
-				else:
-					if len(reg_field)>0:
-						if len(reg_year)>0:
-							queryId=19
+						if len(reg_venue) > 0:
+							if len(reg_field) > 0:
+								queryId =5008
+							else:
+								queryId =5004
 						else:
+							if len(reg_field) > 0:
+								queryId =5006
+							else:
+								queryId =5002
+				elif author_flag ==0 and conf_flag==1 and paper_flag==0:
+					if cite_flag==1:
+						if len(reg_auth) > 0:
+							if len(reg_field) > 0:
+								queryId =5024
+							else:
+								queryId =5023
+						else:
+							if len(reg_field) > 0:
+								queryId =5012
+							else:
+								queryId =5011
+								
+				elif author_flag ==0 and conf_flag==1 and paper_flag==1:
+					if cite_flag==1:
+						if len(reg_auth) > 0:
+							if len(reg_field) > 0:
+								queryId =5024
+							else:
+								queryId =5023
+						else:
+							if len(reg_field) > 0:
+								queryId =5012
+							else:
+								queryId =5011
+					else:
+						if len(reg_auth) > 0:
+							if len(reg_field) > 0:
+								queryId =5022
+							else:
+								queryId =5021
+						else:
+							if len(reg_field) > 0:
+								queryId =5010
+							else:
+								queryId =5009
+				elif author_flag ==1 and conf_flag==0 and paper_flag==0:
+					if cite_flag==1:
+						if len(reg_venue) > 0:
+							if len(reg_field) > 0:
+								queryId =5007
+							else:
+								queryId =5003
+						else:
+							if len(reg_field) > 0:
+								queryId =5005
+							else:
+								# print('Here 3')
+								queryId =5001
+				elif author_flag ==1 and conf_flag==0 and paper_flag==1:
+					if cite_flag==1:
+						if len(reg_venue) > 0:
+							if len(reg_field) > 0:
+								queryId =5007
+							else:
+								queryId =5003
+						else:
+							if len(reg_field) > 0:
+								queryId =5005
+							else:
+								# print('Here 4')
+								queryId =5001
+					else:
+						if len(reg_venue) > 0:
+							if len(reg_field) > 0:
+								queryId =5008
+							else:
+								queryId =5004
+						else:
+							if len(reg_field) > 0:
+								queryId =5006
+							else:
+								queryId =5002
+				elif author_flag ==1 and conf_flag==1 and paper_flag==0:
+					pass
+				elif author_flag ==1 and conf_flag==1 and paper_flag==1:
+					pass
+				if queryId>0 and len(reg_year)==1:
+					if until_flag==1:
+						queryId += 600
+					elif from_flag==1:
+						queryId += 800
+					else:
+						queryId += 200
+				elif queryId>0 and len(reg_year)==2:
+					queryId += 400
+			else:
+				if paper_flag==1 or pub_flag==1:
+					paper_flag=1
+				if author_flag ==0 and conf_flag==0 and paper_flag==0:
+					if cite_flag==1:
+						if len(reg_venue) > 0:
+							if len(reg_field) > 0:
+								queryId =10007
+							else:
+								queryId =10003
+						else:
+							if len(reg_field) > 0:
+								queryId =10005
+							else:
+								
+								queryId =10001
+
+				elif author_flag ==0 and conf_flag==0 and paper_flag==1:
+					if cite_flag==1:
+						if len(reg_auth) > 0:
+							if len(reg_venue) > 0:
+								if len(reg_field) > 0:
+									queryId =10019
+								else:
+									queryId =10018
+							else:
+								if len(reg_field) > 0:
+									queryId =10017
+								else:
+									queryId =10016
+						else:
+							if len(reg_venue) > 0:
+								if len(reg_field) > 0:
+									queryId =10020
+								else:
+									queryId =10015
+							else:
+								if len(reg_field) > 0:
+									queryId =10014
+								else:
+									queryId =10013
+					else:
+						if len(reg_venue) > 0:
+							if len(reg_field) > 0:
+								queryId =10008
+							else:
+								queryId =10004
+						else:
+							if len(reg_field) > 0:
+								queryId =10006
+							else:
+								queryId =10002
+				elif author_flag ==0 and conf_flag==1 and paper_flag==0:
+					if cite_flag==1:
+						if len(reg_auth) > 0:
+							if len(reg_field) > 0:
+								queryId =10024
+							else:
+								queryId =10023
+						else:
+							if len(reg_field) > 0:
+								queryId =10012
+							else:
+								queryId =10011
+								
+				elif author_flag ==0 and conf_flag==1 and paper_flag==1:
+					if cite_flag==1:
+						if len(reg_auth) > 0:
+							if len(reg_field) > 0:
+								queryId =10024
+							else:
+								queryId =10023
+						else:
+							if len(reg_field) > 0:
+								queryId =10012
+							else:
+								queryId =10011
+					else:
+						if len(reg_auth) > 0:
+							if len(reg_field) > 0:
+								queryId =10022
+							else:
+								queryId =10021
+						else:
+							if len(reg_field) > 0:
+								queryId =10010
+							else:
+								queryId =10009
+				elif author_flag ==1 and conf_flag==0 and paper_flag==0:
+					if cite_flag==1:
+						if len(reg_venue) > 0:
+							if len(reg_field) > 0:
+								queryId =10007
+							else:
+								queryId =10003
+						else:
+							if len(reg_field) > 0:
+								queryId =10005
+							else:
+								# print('Here 3')
+								queryId =10001
+				elif author_flag ==1 and conf_flag==0 and paper_flag==1:
+					if cite_flag==1:
+						if len(reg_venue) > 0:
+							if len(reg_field) > 0:
+								queryId =10007
+							else:
+								queryId =10003
+						else:
+							if len(reg_field) > 0:
+								queryId =10005
+							else:
+								# print('Here 4')
+								queryId =10001
+					else:
+						if len(reg_venue) > 0:
+							if len(reg_field) > 0:
+								queryId =10008
+							else:
+								queryId =10004
+						else:
+							if len(reg_field) > 0:
+								queryId =10006
+							else:
+								queryId =10002
+				elif author_flag ==1 and conf_flag==1 and paper_flag==0:
+					pass
+				elif author_flag ==1 and conf_flag==1 and paper_flag==1:
+					pass
+				if queryId>0 and len(reg_year)==1:
+					if until_flag==1:
+						queryId += 600
+					elif from_flag==1:
+						queryId += 800
+					else:
+						queryId += 200
+				elif queryId>0 and len(reg_year)==2:
+					queryId += 400
+
+		elif more_flag==1 or less_flag==1:
+			if paper_flag==1 or pub_flag==1:
+				paper_flag=1
+			if author_flag ==0 and conf_flag==0 and paper_flag==0:
+				if cite_flag==1:
+					if len(reg_venue) > 0:
+						if len(reg_field) > 0:
+							queryId =5007
+						else:
+							queryId =5003
+					else:
+						if len(reg_field) > 0:
+							queryId =5005
+						else:
+							
+							queryId =5001
+
+			elif author_flag ==0 and conf_flag==0 and paper_flag==1:
+				if cite_flag==1:
+					if len(reg_auth) > 0:
+						if len(reg_venue) > 0:
+							if len(reg_field) > 0:
+								queryId =5019
+							else:
+								queryId =5018
+						else:
+							if len(reg_field) > 0:
+								queryId =5017
+							else:
+								queryId =5016
+					else:
+						if len(reg_venue) > 0:
+							if len(reg_field) > 0:
+								queryId =5020
+							else:
+								queryId =5015
+						else:
+							if len(reg_field) > 0:
+								queryId =5014
+							else:
+								queryId =5013
+				else:
+					if len(reg_venue) > 0:
+						if len(reg_field) > 0:
+							queryId =5008
+						else:
+							queryId =5004
+					else:
+						if len(reg_field) > 0:
+							queryId =5006
+						else:
+							queryId =5002
+			elif author_flag ==0 and conf_flag==1 and paper_flag==0:
+				if cite_flag==1:
+					if len(reg_auth) > 0:
+						if len(reg_field) > 0:
+							queryId =5024
+						else:
+							queryId =5023
+					else:
+						if len(reg_field) > 0:
+							queryId =5012
+						else:
+							queryId =5011
+							
+			elif author_flag ==0 and conf_flag==1 and paper_flag==1:
+				if cite_flag==1:
+					if len(reg_auth) > 0:
+						if len(reg_field) > 0:
+							queryId =5024
+						else:
+							queryId =5023
+					else:
+						if len(reg_field) > 0:
+							queryId =5012
+						else:
+							queryId =5011
+				else:
+					if len(reg_auth) > 0:
+						if len(reg_field) > 0:
+							queryId =5022
+						else:
+							queryId =5021
+					else:
+						if len(reg_field) > 0:
+							queryId =5010
+						else:
+							queryId =5009
+			elif author_flag ==1 and conf_flag==0 and paper_flag==0:
+				if cite_flag==1:
+					if len(reg_venue) > 0:
+						if len(reg_field) > 0:
+							queryId =5007
+						else:
+							queryId =5003
+					else:
+						if len(reg_field) > 0:
+							queryId =5005
+						else:
+							# print('Here 3')
+							queryId =5001
+			elif author_flag ==1 and conf_flag==0 and paper_flag==1:
+				if cite_flag==1:
+					if len(reg_venue) > 0:
+						if len(reg_field) > 0:
+							queryId =5007
+						else:
+							queryId =5003
+					else:
+						if len(reg_field) > 0:
+							queryId =5005
+						else:
+							# print('Here 4')
+							queryId =5001
+				else:
+					if len(reg_venue) > 0:
+						if len(reg_field) > 0:
+							queryId =5008
+						else:
+							queryId =5004
+					else:
+						if len(reg_field) > 0:
+							queryId =5006
+						else:
+							queryId =5002
+			elif author_flag ==1 and conf_flag==1 and paper_flag==0:
+				pass
+			elif author_flag ==1 and conf_flag==1 and paper_flag==1:
+				pass
+			if more_flag==1 and queryId>0:
+				if len(reg_number) > 0:
+					queryId += 1000
+				elif queryId >=5001 and queryId <=5008 and len(reg_auth) > 0:
+					queryId += 3000
+				elif queryId >=5009 and queryId <=5012 and len(reg_venue) > 0:
+					queryId += 3000
+				elif queryId >=5021 and queryId <=5024 and len(reg_auth) > 0:
+					queryId += 3000
+			elif less_flag==1 and queryId>0:
+				if len(reg_number) > 0:
+					queryId += 2000
+				elif queryId >=5001 and queryId <=5008 and len(reg_auth) > 0:
+					queryId += 4000
+				elif queryId >=5009 and queryId <=5012 and len(reg_venue) > 0:
+					queryId += 4000
+				elif queryId >=5021 and queryId <=5024 and len(reg_auth) > 0:
+					queryId += 4000
+			if queryId>0 and len(reg_year)==1:
+				if until_flag==1:
+					queryId += 600
+				elif from_flag==1:
+					queryId += 800
+				else:
+					queryId += 200
+			elif queryId>0 and len(reg_year)==2:
+				queryId += 400
+
+		elif ps.stem('when')in stem_words:
+			if paper_flag==1 or pub_flag==1:
+				paper_flag=1
+				if first_flag==1:
+					if len(reg_auth) > 0:
+						if len(reg_field) > 0:
+							if len(reg_venue) > 0:
+								queryId=4004
+							else:
+								queryId=4002
+						elif len(reg_venue) > 0:
+							queryId=4003
+						else:
+							queryId=4001
+					elif len(reg_field) > 0:
+						if len(reg_venue) > 0:
+							queryId=4008
+						else:
+							queryId=4010
+					elif len(reg_venue) > 0:
+						queryId=4006
+				elif last_flag==1:
+					if len(reg_auth) > 0:
+						if len(reg_field) > 0:
+							if len(reg_venue) > 0:
+								queryId=4014
+							else:
+								queryId=4012
+						elif len(reg_venue) > 0:
+							queryId=4005
+						else:
+							queryId=4013
+					elif len(reg_field) > 0:
+						if len(reg_venue) > 0:
+							queryId=4009
+						else:
+							queryId=4011
+					elif len(reg_venue) > 0:
+						queryId=4007
+
+		elif list_flag==1:
+			if positive_flag==1:
+				if len(reg_auth) > 0:
+					if len(reg_field) > 0:
+						if len(reg_venue) > 0:
+							queryId=2020
+						else:
+							queryId=2019
+					elif len(reg_venue) > 0:
+						queryId=2017
+					else:
+						queryId=2015
+				elif len(reg_field) > 0:
+					if len(reg_venue) > 0:
+						queryId=2018
+					else:
+						queryId=2016
+				elif len(reg_venue) > 0:
+					queryId=2014
+				if len(reg_auth) > 1:
+					if len(reg_venue)==0: 
+						if len(reg_field)==0:
+							queryId=2021
+						else:
+							queryId=2023
+					else:
+						if len(reg_field)==0:
+							queryId=2022
+						else:
+							queryId=2024
+				elif len(reg_venue) > 1:
+					if len(reg_field)==0:
+						queryId=2025
+					else:
+						queryId=2026
+			elif negative_flag==1:
+				if len(reg_auth) > 0:
+					if len(reg_field) > 0:
+						if len(reg_venue) > 0:
+							queryId=2033
+						else:
+							queryId=2032
+					elif len(reg_venue) > 0:
+						queryId=2030
+					else:
+						queryId=2028
+				elif len(reg_field) > 0:
+					if len(reg_venue) > 0:
+						queryId=2031
+					else:
+						queryId=2029
+				elif len(reg_venue) > 0:
+					queryId=2027
+				if len(reg_auth) > 1:
+					if len(reg_venue)==0: 
+						if len(reg_field)==0:
+							queryId=2034
+						else:
+							queryId=2036
+					else:
+						if len(reg_field)==0:
+							queryId=2035
+						else:
+							queryId=2037
+				elif len(reg_venue) > 1:
+					if len(reg_field)==0:
+						queryId=2038
+					else:
+						queryId=2039
+			if paper_flag==1 or pub_flag==1:
+				paper_flag=1
+				if len(reg_auth) > 0:
+					if len(reg_field) > 0:
+						if len(reg_venue) > 0:
+							queryId=2007
+						else:
+							queryId=2006
+					elif len(reg_venue) > 0:
+						queryId=2004
+					else:
+						queryId=2002
+				elif len(reg_field) > 0:
+					if len(reg_venue) > 0:
+						queryId=2005
+					else:
+						queryId=2003
+				elif len(reg_venue) > 0:
+					queryId=2001
+
+				if len(reg_auth) > 1:
+					if len(reg_venue)==0: 
+						if len(reg_field)==0:
+							queryId=2008
+						else:
+							queryId=2010
+					else:
+						if len(reg_field)==0:
+							queryId=2009
+						else:
+							queryId=2011
+				elif len(reg_venue) > 1:
+					if len(reg_field)==0:
+						queryId=2012
+					else:
+						queryId=2013
+			if queryId>0 and len(reg_year)==1:
+				if until_flag==1:
+					queryId += 600
+				elif from_flag==1:
+					queryId += 800
+				else:
+					queryId += 200
+			elif queryId>0 and len(reg_year)==2:
+				queryId += 400
+
+		elif ps.stem('how') in stem_words or number_index >= 0:
+			if positive_flag==1:
+				if len(reg_auth) > 0:
+					if len(reg_field) > 0:
+						if len(reg_venue) > 0:
 							queryId=20
-
-
-			elif len(reg_auth)>0:
-				if  'sentiment' in stem_words:
-					if 'posit' in stem_words:
-						queryId = 16
-					elif 'neg' in stem_words:
-						queryId = 15
-				elif len(reg_auth)==2:
-						if len(reg_field)>0:
-							queryId=12
 						else:
-							queryId=11
-				else:
-					if len(reg_field)>0:
+							queryId=19
+					elif len(reg_venue) > 0:
+						queryId=17
+					else:
+						queryId=15
+				elif len(reg_field) > 0:
+					if len(reg_venue) > 0:
+						queryId=18
+					else:
+						queryId=16
+				elif len(reg_venue) > 0:
+					queryId=14
+				if len(reg_auth) > 1:
+					if len(reg_venue)==0: 
+						if len(reg_field)==0:
+							queryId=21
+						else:
+							queryId=23
+					else:
+						if len(reg_field)==0:
+							queryId=22
+						else:
+							queryId=24
+				elif len(reg_venue) > 1:
+					if len(reg_field)==0:
+						queryId=25
+					else:
+						queryId=26
+			elif negative_flag==1:
+				if len(reg_auth) > 0:
+					if len(reg_field) > 0:
+						if len(reg_venue) > 0:
+							queryId=33
+						else:
+							queryId=32
+					elif len(reg_venue) > 0:
+						queryId=30
+					else:
+						queryId=28
+				elif len(reg_field) > 0:
+					if len(reg_venue) > 0:
+						queryId=31
+					else:
+						queryId=29
+				elif len(reg_venue) > 0:
+					queryId=27
+				if len(reg_auth) > 1:
+					if len(reg_venue)==0: 
+						if len(reg_field)==0:
+							queryId=34
+						else:
+							queryId=36
+					else:
+						if len(reg_field)==0:
+							queryId=35
+						else:
+							queryId=37
+				elif len(reg_venue) > 1:
+					if len(reg_field)==0:
+						queryId=38
+					else:
+						queryId=39		
+			elif paper_flag==1 or pub_flag==1 or cite_flag==1:
+				if paper_flag==1 or pub_flag==1:
+					paper_flag=1
+				if len(reg_auth) > 0:
+					if len(reg_field) > 0:
+						if len(reg_venue) > 0:
+							queryId=7
+						else:
+							queryId=6
+					elif len(reg_venue) > 0:
+						queryId=4
+					else:
+						queryId=2
+				elif len(reg_field) > 0:
+					if len(reg_venue) > 0:
 						queryId=5
 					else:
-						queryId=4
-			else:
-				if len(reg_field)>0 and (pub_flag==1 or paper_flag==1):
-					queryId=6
+						queryId=3
+				elif len(reg_venue) > 0:
+					queryId=1
 
-			queryId=queryId+increment
+				if len(reg_auth) > 1:
+					if len(reg_venue)==0: 
+						if len(reg_field)==0:
+							queryId=8
+						else:
+							queryId=10
+					else:
+						if len(reg_field)==0:
+							queryId=9
+						else:
+							queryId=11
+				elif len(reg_venue) > 1:
+					if len(reg_field)==0:
+						queryId=12
+					else:
+						queryId=13
+			if paper_flag==0:
+				queryId+=100
+			elif ps.stem('citation') in stem_words:
+				if stem_words.index(ps.stem('paper')) > stem_words.index(ps.stem('citation')):
+					queryId+=100
+			if queryId>0 and len(reg_year)==1:
+				if until_flag==1:
+					queryId += 600
+				elif from_flag==1:
+					queryId += 800
+				else:
+					queryId += 200
+			elif queryId>0 and len(reg_year)==2:
+				queryId += 400
+
+		elif ps.stem('compare') in stem_words:
+			if cite_flag==1:
+				if len(reg_auth) > 1:
+					if len(reg_field) > 0:
+						if len(reg_venue) > 0:
+							queryId=3008
+						else:
+							queryId=3006
+					elif len(reg_venue) > 0:
+						queryId=3003
+					else:
+						queryId=3001
+				if len(reg_venue) > 1:
+					if len(reg_field) > 0:
+						queryId=3012
+					else:
+						queryId=3010
+			elif pub_flag==1 or paper_flag==1:
+				if len(reg_auth) > 1:
+					if len(reg_field) > 0:
+						if len(reg_venue) > 0:
+							queryId=3009
+						else:
+							queryId=3007
+					elif len(reg_venue) > 0:
+						queryId=3004
+					else:
+						queryId=3002
+				if len(reg_venue) > 1:
+					if len(reg_field) > 0:
+						queryId=3013
+					else:
+						queryId=3011
+
+		if queryId==0:
+			if cite_flag==1:
+				if positive_flag==1:
+					if len(reg_auth) > 0:
+						if len(reg_field) > 0:
+							if len(reg_venue) > 0:
+								queryId=20
+							else:
+								queryId=19
+						elif len(reg_venue) > 0:
+							queryId=17
+						else:
+							queryId=15
+					elif len(reg_field) > 0:
+						if len(reg_venue) > 0:
+							queryId=18
+						else:
+							queryId=16
+					elif len(reg_venue) > 0:
+						queryId=14
+					if len(reg_auth) > 1:
+						if len(reg_venue)==0: 
+							if len(reg_field)==0:
+								queryId=21
+							else:
+								queryId=23
+						else:
+							if len(reg_field)==0:
+								queryId=22
+							else:
+								queryId=24
+					elif len(reg_venue) > 1:
+						if len(reg_field)==0:
+							queryId=25
+						else:
+							queryId=26
+				elif negative_flag==1:
+					if len(reg_auth) > 0:
+						if len(reg_field) > 0:
+							if len(reg_venue) > 0:
+								queryId=33
+							else:
+								queryId=32
+						elif len(reg_venue) > 0:
+							queryId=30
+						else:
+							queryId=28
+					elif len(reg_field) > 0:
+						if len(reg_venue) > 0:
+							queryId=31
+						else:
+							queryId=29
+					elif len(reg_venue) > 0:
+						queryId=27
+					if len(reg_auth) > 1:
+						if len(reg_venue)==0: 
+							if len(reg_field)==0:
+								queryId=34
+							else:
+								queryId=36
+						else:
+							if len(reg_field)==0:
+								queryId=35
+							else:
+								queryId=37
+					elif len(reg_venue) > 1:
+						if len(reg_field)==0:
+							queryId=38
+						else:
+							queryId=39		
+				else:
+					if len(reg_auth) > 0:
+						if len(reg_field) > 0:
+							if len(reg_venue) > 0:
+								queryId=7
+							else:
+								queryId=6
+						elif len(reg_venue) > 0:
+							queryId=4
+						else:
+							queryId=2
+					elif len(reg_field) > 0:
+						if len(reg_venue) > 0:
+							queryId=5
+						else:
+							queryId=3
+					elif len(reg_venue) > 0:
+						queryId=1
+
+					if len(reg_auth) > 1:
+						if len(reg_venue)==0: 
+							if len(reg_field)==0:
+								queryId=8
+							else:
+								queryId=10
+						else:
+							if len(reg_field)==0:
+								queryId=9
+							else:
+								queryId=11
+					elif len(reg_venue) > 1:
+						if len(reg_field)==0:
+							queryId=12
+						else:
+							queryId=13
+				if paper_flag==0:
+					queryId+=100
+				elif stem_words.index(ps.stem('paper')) > stem_words.index(ps.stem('citation')):
+					queryId+=100
+
+			elif paper_flag==1 or pub_flag==1:
+				if positive_flag==1:
+					if len(reg_auth) > 0:
+						if len(reg_field) > 0:
+							if len(reg_venue) > 0:
+								queryId=2020
+							else:
+								queryId=2019
+						elif len(reg_venue) > 0:
+							queryId=2017
+						else:
+							queryId=2015
+					elif len(reg_field) > 0:
+						if len(reg_venue) > 0:
+							queryId=2018
+						else:
+							queryId=2016
+					elif len(reg_venue) > 0:
+						queryId=2014
+					if len(reg_auth) > 1:
+						if len(reg_venue)==0: 
+							if len(reg_field)==0:
+								queryId=2021
+							else:
+								queryId=2023
+						else:
+							if len(reg_field)==0:
+								queryId=2022
+							else:
+								queryId=2024
+					elif len(reg_venue) > 1:
+						if len(reg_field)==0:
+							queryId=2025
+						else:
+							queryId=2026
+				elif negative_flag==1:
+					if len(reg_auth) > 0:
+						if len(reg_field) > 0:
+							if len(reg_venue) > 0:
+								queryId=2033
+							else:
+								queryId=2032
+						elif len(reg_venue) > 0:
+							queryId=2030
+						else:
+							queryId=2028
+					elif len(reg_field) > 0:
+						if len(reg_venue) > 0:
+							queryId=2031
+						else:
+							queryId=2029
+					elif len(reg_venue) > 0:
+						queryId=2027
+					if len(reg_auth) > 1:
+						if len(reg_venue)==0: 
+							if len(reg_field)==0:
+								queryId=2034
+							else:
+								queryId=2036
+						else:
+							if len(reg_field)==0:
+								queryId=2035
+							else:
+								queryId=2037
+					elif len(reg_venue) > 1:
+						if len(reg_field)==0:
+							queryId=2038
+						else:
+							queryId=2039
+				elif paper_flag==1 or pub_flag==1:
+					paper_flag=1
+					if len(reg_auth) > 0:
+						if len(reg_field) > 0:
+							if len(reg_venue) > 0:
+								queryId=2007
+							else:
+								queryId=2006
+						elif len(reg_venue) > 0:
+							queryId=2004
+						else:
+							queryId=2002
+					elif len(reg_field) > 0:
+						if len(reg_venue) > 0:
+							queryId=2005
+						else:
+							queryId=2003
+					elif len(reg_venue) > 0:
+						queryId=2001
+
+					if len(reg_auth) > 1:
+						if len(reg_venue)==0: 
+							if len(reg_field)==0:
+								queryId=2008
+							else:
+								queryId=2010
+						else:
+							if len(reg_field)==0:
+								queryId=2009
+							else:
+								queryId=2011
+					elif len(reg_venue) > 1:
+						if len(reg_field)==0:
+							queryId=2012
+						else:
+							queryId=2013
+
+			elif len(reg_auth) > 0:
+				queryId=50001
+			elif len(reg_venue) > 0:
+				queryId=50002
+
+			if queryId>0 and len(reg_year)==1:
+				if until_flag==1:
+					queryId += 600
+				elif from_flag==1:
+					queryId += 800
+				else:
+					queryId += 200
+			elif queryId>0 and len(reg_year)==2:
+				queryId += 400
+
+		if 1 == binary_flag:
+			if queryId > 2000 and queryId < 3000:
+				queryId += 9000	# 11000 Series
+			elif queryId < 1000:
+				queryId += 1000	# 1000 Series
 
 		outputarray = []
 		outputarray.append(queryId)
 		outputarray.append(type_dict)
-		# print(queryId)
 		print(outputarray)
-		# sys.stdout.flush()
-		# if queryId != act_queryId:
-		# 	errCnt += 1
-		# 	print(line[0],line[1])
-		# 	print(queryId,act_queryId)
-		# else:
-		# 	corCnt +=1
-
-
-	# print(errCnt, corCnt)
 
 #start process
 if __name__ == '__main__':
-	main()
+	entity_recog(sys.argv[1])

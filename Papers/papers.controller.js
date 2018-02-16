@@ -29,6 +29,7 @@ module.exports.getPapersByConference = (conference, pageNum, callback) => {
 module.exports.getPaperMetaById = (_id, callback) => {
   var callItems = _id.split(',');
   Papers.find({"paper_id" : { $in: callItems }}, 'title  year paper_id citations', callback);
+
 }
 
 // Get Papers By ID

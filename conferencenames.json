@@ -12,22 +12,24 @@
         "HLT"
     ], 
     "5": [
-        "EACL"
+        "SIGNLL"
     ], 
     "6": [
-        "JEP/TALN/RECITAL"
+        "EACL"
     ], 
     "7": [
-        "IJCNLP"
+        "JEP", 
+        "TALN", 
+        "RECITAL"
     ], 
     "8": [
-        "SIGHAN"
+        "IJCNLP"
     ], 
     "9": [
-        "CL"
+        "SIGHAN"
     ], 
     "10": [
-        "SIGNLL"
+        "CL"
     ], 
     "11": [
         "LREC"
@@ -39,7 +41,8 @@
         "NAACL"
     ], 
     "14": [
-        "ROCLING/IJCLCLP"
+        "ROCLING", 
+        "IJCLCLP"
     ], 
     "15": [
         "ACL"
@@ -54,7 +57,7 @@
         "SIGLEX"
     ], 
     "19": [
-        "*SEMEVAL"
+        "SEMEVAL"
     ], 
     "20": [
         "TINLAP"

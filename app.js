@@ -8,131 +8,52 @@ const limitPerPage = 10;
 
 //Import Python shell
 var PythonShell = require('python-shell');
-var pyshell = new PythonShell('master.py', {mode:'text', pythonOptions: ['-u']} );
+// var pyshell = new PythonShell('master.py', {mode:'text', pythonOptions: ['-u']} );
 
 /////////////////////////////////////
 ///////NLP QUERY HANDLING////////////
 /////////////////////////////////////
-database = require('./NLP Server/id_to_query');
-var cb;
+database = require('./NLP Server/nlpquery');
+
 // Initialize connection
 database.connect(function() {
   // Start the application after the database connection is ready
 
-  pyshell.on('message', function (message) {
-    // received a message sent from the Python script (a simple "print" statement)
-    let mes = message.replace(/'/g, '"');
-    mes = JSON.parse(mes)
-    // console.log(message);
-    console.log(mes[0], mes[1], typeof mes[1]);
-
-    let meta = mes[1];
-    var metaData = {
-      author: meta['$a'],
-      venue: meta['$v'],
-      field: meta['$f'],
-      university: meta['$u'],
-      year: meta['$y']
-    }
-    console.log(metaData);
-    result = mes[0];
-    console.log("Query ID:", result);
-
-    database.getDocs(metaData, result, function(documents, meta) {
-      cb({docs:documents, meta: meta});
-    });
-
-  });
-
 
   //Get Query string from Client
   app.post('/api/nlpquery', function (req, res) {
-    pyshell.send(req.body.query);
 
-    cb = function callbacksample(sendobject){
-      res.send(sendobject);
-    }
-    // console.log(req.body.query);
-    // Use python shell
-    // var result;
+    var options = {
+      mode: 'text',
+      // pythonOptions: ['-u'], // get print results in real-time
+      args: [req.body.query]
+    };
 
-    //////////////////////////////////////////
-    // var PythonShell = require('python-shell');
-    //
-    // var options = {
-    //     mode: 'text',
-    //     // args: ["Get the list of papers with positive sentiment score of Animesh Mukherjee"]
-    //     args: [req.body.query]
-    // };
-    //
-    // PythonShell.run('entity_recog.py', options, function (err, results) {
-    //     if (err) throw err;
-    //     // results is an array consisting of messages collected during execution
-    //     result = results[0];
-    //     console.log(results);
-    //     getQueryID();
-    //
-    // });
-    //
-    // function getQueryID() {
-    //   var options = {
-    //       mode: 'text',
-    //       args: [result]
-    //   };
-    //
-    //   PythonShell.run('from_mongo_2.py', options, function (err, results) {
-    //       if (err) throw err;
-    //       // results is an array consisting of messages collected during execution
-    //
-    //       var meta =results[1];
-    //       meta = meta.replace(/'/g, '"');
-    //       meta = JSON.parse(meta);
-    //       var metaData = {
-    //         author: meta['$a'],
-    //         venue: meta['$v'],
-    //         field: meta['$f'],
-    //         university: meta['$u'],
-    //         year: meta['$y']
-    //       }
-    //       console.log(metaData);
-    //       result = results[0];
-    //       console.log("Query ID:", result);
-    //
-    //       database.getDocs(metaData, result, function(documents, meta) {
-    //         res.send({docs:documents, meta: meta})
-    //       });
-    //
-    //       // TEST CASE
-    //       // database.getDocs({
-    //       //   author: [],
-    //       //   venue:[ "International Conference on Computational Linguistics"],
-    //       //   field: [],
-    //       //   university: [],
-    //       //   year: []
-    //       // },"201", function(documents, meta) {
-    //       //   res.send({docs:documents, meta: meta})
-    //       // });
-    //
-    //   });
-    // }
+    PythonShell.run('master.py', options, function (err, results) {
+      if (err) throw err;
+      // results is an array consisting of messages collected during execution
 
+        let queryID = results[0];
+        queryID = queryID.replace(/'/g, '"');
+        queryID = JSON.parse(queryID)
+
+        let meta = queryID[1];
+        var metaData = {
+          author: meta['$a'].map(Number),
+          venue: meta['$v'].map(Number),
+          field: meta['$f'],
+          university: meta['$u'],
+          year: meta['$y'].map(Number),
+          number: meta['$n'].map(Number)
+        }
+        result = queryID[0];
+        result = parseInt(result);
+        database.getDocs(metaData, result, function(documents, meta) {
+          res.send({docs:documents, meta: meta});
+        });
+    });
   });
-
 });
-// var options = {
-//     mode: 'text',
-// };
-
-// PythonShell.run('master.py', options, function (err, results) {
-//     if (err) throw err;
-//
-//
-//     // results is an array consisting of messages collected during execution
-//     // result = results[0];
-//     console.log(results);
-//     // getQueryID();
-//
-// });
 
 
 // Import Author Controller
@@ -161,7 +82,7 @@ app.get('/', (req, res) => {
 app.all('/*', function(req, res, next) {
   res.header("Access-Control-Allow-Origin", "*");
   res.header("Access-Control-Allow-Headers", "X-Requested-With");
-  res.header("Access-Control-Allow-Methods", "GET, POST")
+  res.header("Access-Control-Allow-Methods", "GET")
   res.header('Access-Control-Allow-Headers', 'Content-Type');
   next();
 });
@@ -272,15 +193,12 @@ app.get('/api/conference/:_id', (req, res) => {
   });
 });
 
-
-
 // 404 Handling
 app.get('*', function(req, res){
   res.status(404).send("404 Not Found");
 });
 
-
 // START THE SERVER
 // ==============================================
 app.listen(port);
-console.log("Voodoo (I corrected the spelling mistake ! :-) ) Magic happening at port " + port);
+console.log("Voodoo Magic happening at port " + port);
