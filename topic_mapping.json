@@ -1,0 +1,172 @@
+{
+    "11": [
+        "dialogue", 
+        "structure", 
+        "dialog", 
+        "analysis"
+    ], 
+    "10": [
+        "social", 
+        "media", 
+        "question", 
+        "answering", 
+        "multimodal", 
+        "qa"
+    ], 
+    "13": [
+        "interactive", 
+        "systems", 
+        "book", 
+        "reviews", 
+        "opinion", 
+        "evaluation"
+    ], 
+    "12": [
+        "word", 
+        "sense", 
+        "disambiguation", 
+        "wsd", 
+        "textual", 
+        "entailment"
+    ], 
+    "15": [
+        "morphology", 
+        "semantics", 
+        "tagging", 
+        "semi-supervised", 
+        "syntax"
+    ], 
+    "14": [
+        "morphology", 
+        "morphological", 
+        "analysis", 
+        "parsing"
+    ], 
+    "17": [
+        "corpus", 
+        "development", 
+        "annotation", 
+        "knowledge", 
+        "base", 
+        "european", 
+        "languages"
+    ], 
+    "16": [
+        "coreference", 
+        "resolution", 
+        "european", 
+        "languages"
+    ], 
+    "19": [
+        "typology", 
+        "spelling", 
+        "image", 
+        "syntax"
+    ], 
+    "18": [
+        "chunking", 
+        "annotation"
+    ], 
+    "1": [
+        "summarization", 
+        "shared", 
+        "task", 
+        "chinese", 
+        "languages"
+    ], 
+    "0": [
+        "phrases", 
+        "medical", 
+        "domain", 
+        "syntax"
+    ], 
+    "3": [
+        "parsing", 
+        "machine", 
+        "translation", 
+        "mt", 
+        "neural", 
+        "network", 
+        "machine", 
+        "learning", 
+        "deep", 
+        "learning"
+    ], 
+    "2": [
+        "machine", 
+        "translation", 
+        "mt", 
+        "language", 
+        "understanding", 
+        "machine", 
+        "understanding", 
+        "machine", 
+        "learning"
+    ], 
+    "5": [
+        "corpus", 
+        "development", 
+        "annotation", 
+        "knowledge", 
+        "acquisition", 
+        "news", 
+        "text"
+    ], 
+    "4": [
+        "temporal", 
+        "events", 
+        "temporal", 
+        "effects", 
+        "graphical", 
+        "model", 
+        "european", 
+        "languages", 
+        "generative", 
+        "model", 
+        "machine", 
+        "learning"
+    ], 
+    "7": [
+        "grammar", 
+        "correction", 
+        "transliteration", 
+        "name", 
+        "detection", 
+        "arabic", 
+        "langugae", 
+        "semantics"
+    ], 
+    "6": [
+        "phrase", 
+        "discovery", 
+        "discriminative", 
+        "model", 
+        "collaborative", 
+        "filtering", 
+        "machine", 
+        "learning"
+    ], 
+    "9": [
+        "ner", 
+        "named", 
+        "entity", 
+        "recognition", 
+        "information", 
+        "retrieval", 
+        "information", 
+        "extraction", 
+        "clustering"
+    ], 
+    "8": [
+        "event", 
+        "detection", 
+        "bayesian", 
+        "methods", 
+        "bayesian", 
+        "inference", 
+        "graphical", 
+        "model", 
+        "machine", 
+        "learning"
+    ]
+}
