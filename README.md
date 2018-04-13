@@ -8,7 +8,7 @@ The current system is deployed at [http://cnerg.iitkgp.ac.in/aclakg](http://cner
 
 ### Tech
 
-Dillinger uses a number of open source projects to work properly:
+CL Scholar uses a number of open source projects to work properly:
 
 * [React JS](https://reactjs.org/) - JS framework for web apps!
 * [node.js](https://nodejs.org/) - evented I/O for the backend
