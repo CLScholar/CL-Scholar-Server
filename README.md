@@ -16,6 +16,45 @@ CL Scholar uses a number of open source projects to work properly:
 * [Express](http://expressjs.com/) - fast node.js network app framework
 * [ReCharts](http://recharts.org/en-US/) - the streaming build system
 
+
+## Requirements for Development
+
+- `node`
+- `npm`
+
+## Setup for Development
+
+The whole pipeline is as follow - 
+`MongoDB Database  --> NodeJS API Server --> React Frontend`
+
+In order to install the website and frontend part
+
+- `git clone https://github.com/CLScholar/CL-Scholar-Client.git`
+- `cd CL-Scholar-Client`
+- `npm install`
+- `npm start`
+
+### Customizing Your Development Environment
+
+In order to install the full pipeline
+
+Set up the database
+
+1. Download all the data from https://github.com/CLScholar/data
+2. Install `MongoDB` server
+3. Create a database with name `acl`
+4. Create `authors`, `papers` and `conferences` collections and import the downloaded data.
+
+Set up the API server
+
+- Install `python 3.5`
+- `pip install nltk`
+- `git clone https://github.com/CLScholar/CL-Scholar-Client.git`
+- `cd CL-Scholar-Client`
+- `npm install`
+- `npm start`
+- Go to `CL-Scholar-Client/src/config.js` and edit `ACL_API` link.
+
 License
 ----
 MIT
